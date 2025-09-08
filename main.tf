@@ -1,15 +1,3 @@
-# --------------------------------------
-# Variables for AMI and Instance Type
-# --------------------------------------
-variable "ami" {
-  description = "AMI ID for the EC2 instance"
-  default     = "ami-0a0f1259dd1c90938"  # Amazon Linux 2 in ap-south-1
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  default     = "t3.micro"
-}
 
 # --------------------------------------
 # S3 Bucket for Terraform State
