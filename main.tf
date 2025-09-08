@@ -1,9 +1,16 @@
 resource "aws_s3_bucket" "tf_state" {
-  bucket = "kapil-terraformstatefile-bucket-12345678"
-  
-  versioning {
-    enabled = true
+  bucket = "your-bucket-name"
+  ...
+}
+
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.tf_state.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
+}
+
 
   tags = {
     Name        = "Terraform State"
