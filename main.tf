@@ -26,9 +26,6 @@ resource "aws_s3_bucket" "tf_state" {
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.tf_state.id
 
-  versioning_configuration {
-    status = "Enabled"
-  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_encryption" {
