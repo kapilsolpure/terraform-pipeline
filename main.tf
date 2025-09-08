@@ -37,7 +37,7 @@ data "aws_vpc" "default" {
 data "aws_subnets" "available" {
   filter {
     name   = "availability-zone"
-    values = ["ap-south-1a"]  # Or use 1b if needed
+    values = ["ap-south-1b"]  # Or use 1b if needed
   }
 
   filter {
