@@ -28,26 +28,29 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_encrypti
   }
 }
 
+
+
 data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "default" {
+data "aws_subnets" "available" {
   filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    name   = "availability-zone"
+    values = ["ap-south-1a"]  # Or use 1b if needed
+  }
+
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
   }
 }
 
-resource "aws_security_group" "web_sg" {
-  # (your security group code remains the same)
-}
-
 resource "aws_instance" "web" {
-  ami                    = var.ami
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.default.ids[0]
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  ami                         = var.ami
+  instance_type               = var.instance_type
+  subnet_id                   = data.aws_subnets.available.ids[0]
+  vpc_security_group_ids      = [aws_security_group.web_sg.id]
 
   user_data = <<-EOF
               #!/bin/bash
@@ -62,4 +65,3 @@ resource "aws_instance" "web" {
     Name = "TerraformWebServer"
   }
 }
-
