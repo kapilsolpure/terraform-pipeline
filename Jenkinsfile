@@ -38,7 +38,7 @@ pipeline {
 
     stage('Terraform Plan') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-terraform-creds']]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
           timeout(time: 10, unit: 'MINUTES') {
             sh '''
               echo "[INFO] Running Terraform Plan..."
@@ -59,7 +59,7 @@ pipeline {
 
     stage('Terraform Apply') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-terraform-creds']]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
           sh '''
             echo "[INFO] Running Terraform Apply..."
             export AWS_REGION=${AWS_REGION}
