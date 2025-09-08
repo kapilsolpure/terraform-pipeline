@@ -24,7 +24,13 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-terraform-creds']]) {
-                    sh 'terraform plan -input=false'
+                    timeout(time: 10, unit: 'MINUTES') {
+                        sh '''
+                            echo "📌 Running Terraform Plan..."
+                            terraform plan -out=tfplan | tee plan-output.log
+                            echo "✅ Plan completed."
+                        '''
+                    }
                 }
             }
         }
@@ -32,7 +38,13 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-terraform-creds']]) {
-                    sh 'terraform apply -auto-approve -input=false'
+                    timeout(time: 10, unit: 'MINUTES') {
+                        sh '''
+                            echo "🚀 Applying Terraform Plan..."
+                            terraform apply -auto-approve tfplan
+                            echo "✅ Apply complete."
+                        '''
+                    }
                 }
             }
         }
@@ -53,5 +65,3 @@ pipeline {
         }
     }
 }
-
-
