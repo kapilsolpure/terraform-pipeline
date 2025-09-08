@@ -10,3 +10,4 @@ variable "ami" {
   description = "Amazon Linux 2 AMI"
   default     = "ami-0a232144cf20a27a5"  # Update based on your region
 }
+
