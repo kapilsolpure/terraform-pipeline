@@ -49,7 +49,7 @@ data "aws_subnets" "available" {
 resource "aws_instance" "web" {
   ami                         = var.ami
   instance_type               = var.instance_type
-  subnet_id                   = data.aws_subnets.available.ids[0]
+  subnet_id                   = "subnet-0de64ede5c643268e"
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
 
   user_data = <<-EOF
