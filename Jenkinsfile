@@ -23,7 +23,7 @@ pipeline {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           retry(2) {
-            timeout(time: 5, unit: 'MINUTES') {
+            timeout(time: 15, unit: 'MINUTES') {
               sh '''
                 echo "[INFO] Running Terraform Init..."
                 export AWS_REGION=${AWS_REGION}
@@ -39,7 +39,7 @@ pipeline {
     stage('Terraform Plan') {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          timeout(time: 10, unit: 'MINUTES') {
+          timeout(time: 15, unit: 'MINUTES') {
             sh '''
               echo "[INFO] Running Terraform Plan..."
               export AWS_REGION=${AWS_REGION}
