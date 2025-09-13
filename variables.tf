@@ -1,13 +1,11 @@
-variable "region" {
-  default = "ap-south-1"
+variable "ami" {
+  description = "AMI ID to use for the EC2 instance"
+  type        = string
 }
 
 variable "instance_type" {
-  default = "t2.micro"
-}
-
-variable "ami" {
-  description = "Amazon Linux 2 AMI"
-  default     = "ami-0861f4e788f5069dd"  # Update based on your region
+  description = "EC2 instance type"
+  type        = string
+  default     = "t2.micro"
 }
 
