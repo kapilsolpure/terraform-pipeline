@@ -1,4 +1,3 @@
-
 # --------------------------------------
 # S3 Bucket for Terraform State
 # --------------------------------------
@@ -9,10 +8,10 @@ resource "aws_s3_bucket" "tf_state" {
     Name        = "Terraform State"
     Environment = "Dev"
   }
-} 
+}
 
 resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.my_bucket.id
+  bucket = aws_s3_bucket.tf_state.id
 
   versioning_configuration {
     status = "Enabled"
@@ -96,10 +95,9 @@ resource "aws_instance" "web" {
 }
 
 # --------------------------------------
-# Outputs
+# Outputs (Optional: Uncomment if needed)
 # --------------------------------------
-#output "instance_public_ip" {
-  #description = "Public IP of the EC2 instance"
-  #value       = aws_instance.web.public_ip
-#}
-
+# output "instance_public_ip" {
+#   description = "Public IP of the EC2 instance"
+#   value       = aws_instance.web.public_ip
+# }
