@@ -2,96 +2,39 @@ pipeline {
   agent any
 
   environment {
-    AWS_REGION = 'ap-south-1'
-    TF_IN_AUTOMATION = 'true'
+    AWS_ACCESS_KEY_ID     = credentials('jenkins')
+    AWS_SECRET_ACCESS_KEY = credentials('jenkins')
   }
 
   stages {
     stage('Checkout') {
       steps {
-        cleanWs() // Clean workspace to avoid stale state
-        checkout scm
-        sh 'git rev-parse HEAD'  // Debug: print current commit SHA
-      }
-    }
-
-    stage('Terraform Format') {
-      steps {
-        sh '''
-          echo "[INFO] Checking Terraform formatting..."
-          terraform fmt -check || terraform fmt
-        '''
+        git branch: 'main', url: 'https://github.com/kapilsolpure/terraform-pipeline.git'
       }
     }
 
     stage('Terraform Init') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          retry(2) {
-            timeout(time: 15, unit: 'MINUTES') {
-              sh '''
-                set -x
-                echo "[INFO] Running Terraform Init with reconfigure and migrate-state..."
-                export AWS_REGION=${AWS_REGION}
-                terraform init -input=false -reconfigure -migrate-state
-                echo "[INFO] Terraform Init completed."
-              '''
-            }
-          }
-        }
+        sh 'terraform init -input=false -reconfigure'
       }
     }
 
     stage('Terraform Plan') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          timeout(time: 15, unit: 'MINUTES') {
-            sh '''
-              echo "[INFO] Running Terraform Plan..."
-              export AWS_REGION=${AWS_REGION}
-              terraform plan -out=tfplan
-              echo "[INFO] Terraform Plan completed."
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Approve Terraform Apply') {
-      steps {
-        input message: 'Do you want to apply the Terraform plan?', ok: 'Apply'
+        sh 'terraform plan -input=false -out=tfplan'
       }
     }
 
     stage('Terraform Apply') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          sh '''
-            echo "[INFO] Running Terraform Apply..."
-            export AWS_REGION=${AWS_REGION}
-            terraform apply -auto-approve tfplan
-            echo "[INFO] Terraform Apply completed."
-          '''
-        }
-      }
-    }
-
-    stage('Show Public IP') {
-      steps {
-        sh '''
-          echo "[INFO] Fetching EC2 public IP..."
-          terraform output instance_public_ip
-        '''
+        sh 'terraform apply -input=false -auto-approve tfplan'
       }
     }
   }
 
   post {
-    success {
-      echo '🟢 Pipeline completed successfully!'
-    }
-    failure {
-      echo '🔴 Pipeline failed — check logs for details.'
+    always {
+      cleanWs()
     }
   }
 }
