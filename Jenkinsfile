@@ -9,7 +9,9 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
+        cleanWs() // Clean workspace to avoid stale state
         checkout scm
+        sh 'git rev-parse HEAD'  // Debug: print current commit SHA
       }
     }
 
@@ -24,20 +26,14 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        withCredentials([[
-          $class: 'AmazonWebServicesCredentialsBinding',
-          credentialsId: 'jenkins'
-        ]]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           retry(2) {
             timeout(time: 15, unit: 'MINUTES') {
               sh '''
-                echo "[INFO] Running Terraform Init..."
+                set -x
+                echo "[INFO] Running Terraform Init with reconfigure and migrate-state..."
                 export AWS_REGION=${AWS_REGION}
-                export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
-                terraform init -input=false -reconfigure
-
+                terraform init -input=false -reconfigure -migrate-state
                 echo "[INFO] Terraform Init completed."
               '''
             }
@@ -48,19 +44,12 @@ pipeline {
 
     stage('Terraform Plan') {
       steps {
-        withCredentials([[
-          $class: 'AmazonWebServicesCredentialsBinding',
-          credentialsId: 'jenkins'
-        ]]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           timeout(time: 15, unit: 'MINUTES') {
             sh '''
               echo "[INFO] Running Terraform Plan..."
               export AWS_REGION=${AWS_REGION}
-              export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-              export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
               terraform plan -out=tfplan
-
               echo "[INFO] Terraform Plan completed."
             '''
           }
@@ -76,18 +65,11 @@ pipeline {
 
     stage('Terraform Apply') {
       steps {
-        withCredentials([[
-          $class: 'AmazonWebServicesCredentialsBinding',
-          credentialsId: 'jenkins'
-        ]]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           sh '''
             echo "[INFO] Running Terraform Apply..."
             export AWS_REGION=${AWS_REGION}
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
             terraform apply -auto-approve tfplan
-
             echo "[INFO] Terraform Apply completed."
           '''
         }
