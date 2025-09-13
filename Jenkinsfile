@@ -15,7 +15,10 @@ pipeline {
 
     stage('Terraform Format') {
       steps {
-        sh 'terraform fmt -check || terraform fmt'
+        sh '''
+          echo "[INFO] Checking Terraform formatting..."
+          terraform fmt -check || terraform fmt
+        '''
       }
     }
 
@@ -27,7 +30,7 @@ pipeline {
               sh '''
                 echo "[INFO] Running Terraform Init..."
                 export AWS_REGION=${AWS_REGION}
-                terraform init -reconfigure
+                terraform init -input=false -reconfigure
                 echo "[INFO] Terraform Init completed."
               '''
             }
@@ -72,7 +75,10 @@ pipeline {
 
     stage('Show Public IP') {
       steps {
-        sh 'terraform output instance_public_ip'
+        sh '''
+          echo "[INFO] Fetching EC2 public IP..."
+          terraform output instance_public_ip
+        '''
       }
     }
   }
