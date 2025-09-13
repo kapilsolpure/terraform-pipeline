@@ -22,29 +22,43 @@ pipeline {
       }
     }
 
-  stage('Terraform Init') {
-  steps {
-    withCredentials([[
-      $class: 'AmazonWebServicesCredentialsBinding',
-      credentialsId: 'jenkins'
-    ]]) {
-      retry(2) {
-        timeout(time: 15, unit: 'MINUTES') {
+    stage('Terraform Init') {
+      steps {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'jenkins'
+        ]]) {
+          retry(2) {
+            timeout(time: 15, unit: 'MINUTES') {
+              sh '''
+                echo "[INFO] Cleaning old terraform state and folders..."
+                rm -rf .terraform terraform.tfstate terraform.tfstate.backup
+                echo "[INFO] Running Terraform Init..."
+                export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                export AWS_REGION=$AWS_REGION
+                terraform init -input=false -reconfigure
+                echo "[INFO] Terraform Init completed."
+              '''
+            }
+          }
+        }
+      }
+    }
+
+    stage('Terraform Import') {
+      steps {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'jenkins'
+        ]]) {
           sh '''
-            echo "[INFO] Cleaning old terraform state and folders..."
-            rm -rf .terraform terraform.tfstate terraform.tfstate.backup
-            echo "[INFO] Running Terraform Init..."
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            export AWS_REGION=$AWS_REGION
-            terraform init -input=false -reconfigure
-            echo "[INFO] Terraform Init completed."
+            echo "[INFO] Importing existing S3 bucket to Terraform state..."
+            terraform import aws_s3_bucket.tf_state kapil-terraformstatefile-bucket-12345678 || echo "Import skipped or already done"
           '''
         }
       }
     }
-  }
-}
 
     stage('Terraform Plan') {
       steps {
