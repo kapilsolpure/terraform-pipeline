@@ -77,7 +77,8 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = "subnet-0f83cb563bd972c81"  # Your subnet ID
+  subnet_id              = "subnet-0f83cb563bd972c81" 
+  associate_public_ip_address = true 
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   user_data = <<-EOF
