@@ -17,7 +17,7 @@ pipeline {
       steps {
         sh '''
           echo "[INFO] Checking Terraform formatting..."
-          terraform fmt -check || terraform fmt
+          terraform fmt -check -recursive || terraform fmt -recursive
         '''
       }
     }
@@ -32,7 +32,9 @@ pipeline {
             timeout(time: 15, unit: 'MINUTES') {
               sh '''
                 echo "[INFO] Running Terraform Init..."
-                export AWS_REGION=${AWS_REGION}
+                export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                export AWS_REGION=$AWS_REGION
                 terraform init -input=false -reconfigure
                 echo "[INFO] Terraform Init completed."
               '''
@@ -51,7 +53,9 @@ pipeline {
           timeout(time: 15, unit: 'MINUTES') {
             sh '''
               echo "[INFO] Running Terraform Plan..."
-              export AWS_REGION=${AWS_REGION}
+              export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+              export AWS_REGION=$AWS_REGION
               terraform plan -out=tfplan
               echo "[INFO] Terraform Plan completed."
             '''
@@ -74,7 +78,9 @@ pipeline {
         ]]) {
           sh '''
             echo "[INFO] Running Terraform Apply..."
-            export AWS_REGION=${AWS_REGION}
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            export AWS_REGION=$AWS_REGION
             terraform apply -auto-approve tfplan
             echo "[INFO] Terraform Apply completed."
           '''
@@ -84,10 +90,12 @@ pipeline {
 
     stage('Show Public IP') {
       steps {
-        sh '''
-          echo "[INFO] Fetching EC2 public IP..."
-          terraform output -raw instance_public_ip || echo "Output not available."
-        '''
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+          sh '''
+            echo "[INFO] Fetching EC2 public IP..."
+            terraform output -raw instance_public_ip || echo "Public IP not available."
+          '''
+        }
       }
     }
   }
