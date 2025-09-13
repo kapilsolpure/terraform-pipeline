@@ -1,50 +1,17 @@
 # --------------------------------------
-# S3 Bucket for Terraform State
-# --------------------------------------
-resource "aws_s3_bucket" "tf_state" {
-  bucket = "kapil-terraformstatefile-bucket-123456789"  # Your bucket name
-
-  tags = {
-    Name        = "Terraform State"
-    Environment = "Dev"
-  }
-}
-
-resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.tf_state.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_encryption" {
-  bucket = aws_s3_bucket.tf_state.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-# --------------------------------------
-# Get Default VPC (optional, you can remove if unused)
+# Security Group for EC2 Instance
 # --------------------------------------
 data "aws_vpc" "default" {
   default = true
 }
 
-# --------------------------------------
-# Security Group for EC2 Instance
-# --------------------------------------
 resource "aws_security_group" "web_sg" {
   name        = "web-sg"
   description = "Allow SSH and HTTP"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "SSH"
+    description = "Allow SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -52,7 +19,7 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
-    description = "HTTP"
+    description = "Allow HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -77,7 +44,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                    = var.ami
   instance_type          = var.instance_type
-  subnet_id              = "subnet-0c3ca3156cd7de127"  # Your subnet ID
+  subnet_id              = var.subnet_id   # Passed from variable
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   user_data = <<-EOF
@@ -95,9 +62,9 @@ resource "aws_instance" "web" {
 }
 
 # --------------------------------------
-# Outputs (Optional: Uncomment if needed)
+# Output
 # --------------------------------------
-# output "instance_public_ip" {
-#   description = "Public IP of the EC2 instance"
-#   value       = aws_instance.web.public_ip
-# }
+output "instance_public_ip" {
+  description = "Public IP of the EC2 instance"
+  value       = aws_instance.web.public_ip
+}
