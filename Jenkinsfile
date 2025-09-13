@@ -7,13 +7,6 @@ pipeline {
   }
 
   stages {
-    stage('Clean Workspace') {
-      steps {
-        echo "[INFO] Cleaning workspace to avoid stale state issues..."
-        deleteDir()
-      }
-    }
-
     stage('Checkout') {
       steps {
         checkout scm
@@ -28,13 +21,14 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
+        deleteDir() // Clean workspace to avoid stale files
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           retry(2) {
             timeout(time: 15, unit: 'MINUTES') {
               sh '''
                 echo "[INFO] Running Terraform Init..."
                 export AWS_REGION=${AWS_REGION}
-                terraform init -input=false -reconfigure
+                terraform init -reconfigure
                 echo "[INFO] Terraform Init completed."
               '''
             }
