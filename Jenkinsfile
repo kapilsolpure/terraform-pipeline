@@ -7,6 +7,13 @@ pipeline {
   }
 
   stages {
+    stage('Clean Workspace') {
+      steps {
+        echo "[INFO] Cleaning workspace to avoid stale state issues..."
+        deleteDir()
+      }
+    }
+
     stage('Checkout') {
       steps {
         checkout scm
@@ -15,10 +22,7 @@ pipeline {
 
     stage('Terraform Format') {
       steps {
-        sh '''
-          echo "[INFO] Checking Terraform formatting..."
-          terraform fmt -check || terraform fmt
-        '''
+        sh 'terraform fmt -check || terraform fmt'
       }
     }
 
@@ -75,10 +79,7 @@ pipeline {
 
     stage('Show Public IP') {
       steps {
-        sh '''
-          echo "[INFO] Fetching EC2 public IP..."
-          terraform output instance_public_ip
-        '''
+        sh 'terraform output instance_public_ip'
       }
     }
   }
