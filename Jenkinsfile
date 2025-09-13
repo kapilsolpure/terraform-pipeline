@@ -21,7 +21,6 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        deleteDir() // clean workspace to avoid stale files if needed
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
           retry(2) {
             timeout(time: 15, unit: 'MINUTES') {
