@@ -25,7 +25,7 @@ pipeline {
           retry(2) {
             timeout(time: 15, unit: 'MINUTES') {
               sh '''
-                echo "[INFO] Running Terraform Init..."
+                echo "[INFO] Running Terraform Init with -reconfigure..."
                 export AWS_REGION=${AWS_REGION}
                 terraform init -reconfigure -input=false
                 echo "[INFO] Terraform Init completed."
