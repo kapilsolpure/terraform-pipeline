@@ -13,14 +13,14 @@ pipeline {
       }
     }
 
-    stage('Terraform Init') {
-      steps {
-        // Try to init with reconfigure, fallback to normal init
-        sh '''
-        terraform init -input=false -reconfigure || terraform init -input=false
-        '''
-      }
-    }
+  stage('Terraform Init') {
+  steps {
+    sh '''
+      terraform init -input=false -migrate-state || terraform init -input=false -reconfigure
+    '''
+  }
+}
+
 
     stage('Terraform Plan') {
       steps {
