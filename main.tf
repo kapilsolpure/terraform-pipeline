@@ -2,7 +2,7 @@
 # S3 Bucket for Terraform State
 # --------------------------------------
 resource "aws_s3_bucket" "tf_state" {
-  bucket = "kapil-terraformstatefile-bucket-123456789"  # Your bucket name
+  bucket = "kapil-terraformstatefile-bucket-12345678"  # Your bucket name
 
   tags = {
     Name        = "Terraform State"
