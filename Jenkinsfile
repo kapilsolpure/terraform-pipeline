@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('jenkins').accessKeyId
-        AWS_SECRET_ACCESS_KEY = credentials('jenkins').secretAccessKey
-        AWS_DEFAULT_REGION    = 'us-east-1'  // change as per your region
+        AWS_DEFAULT_REGION = 'us-east-1'  // adjust your region here
     }
 
     stages {
@@ -16,21 +14,36 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh '''
-                   terraform init -input=false -migrate-state
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh '''
+                        terraform init -input=false -migrate-state
+                    '''
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh 'terraform plan -out=tfplan'
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -input=false -auto-approve tfplan'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh 'terraform apply -input=false -auto-approve tfplan'
+                }
             }
         }
     }
