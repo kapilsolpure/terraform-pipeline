@@ -15,7 +15,10 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        sh 'terraform init -input=false -reconfigure'
+        // Try to init with reconfigure, fallback to normal init
+        sh '''
+        terraform init -input=false -reconfigure || terraform init -input=false
+        '''
       }
     }
 
@@ -28,6 +31,15 @@ pipeline {
     stage('Terraform Apply') {
       steps {
         sh 'terraform apply -input=false -auto-approve tfplan'
+      }
+    }
+
+    stage('Show URL') {
+      steps {
+        script {
+          def ip = sh(script: "terraform output -raw instance_public_ip", returnStdout: true).trim()
+          echo "Your EC2 welcome page is at: http://${ip}"
+        }
       }
     }
   }
