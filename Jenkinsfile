@@ -1,88 +1,61 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    AWS_REGION = 'ap-south-1'
-    TF_IN_AUTOMATION = 'true'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('jenkins') // your AWS credentials ID
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins')
     }
 
-    stage('Terraform Format') {
-      steps {
-        sh 'terraform fmt -check || terraform fmt'
-      }
-    }
-
-    stage('Terraform Init') {
-      steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          retry(2) {
-            timeout(time: 15, unit: 'MINUTES') {
-              sh '''
-                echo "[INFO] Running Terraform Init with -reconfigure..."
-                export AWS_REGION=${AWS_REGION}
-                terraform init -reconfigure -input=false
-                echo "[INFO] Terraform Init completed."
-              '''
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/kapilsolpure/terraform-pipeline.git', branch: 'main'
             }
-          }
         }
-      }
-    }
 
-    stage('Terraform Plan') {
-      steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          timeout(time: 15, unit: 'MINUTES') {
-            sh '''
-              echo "[INFO] Running Terraform Plan..."
-              export AWS_REGION=${AWS_REGION}
-              terraform plan -out=tfplan
-              echo "[INFO] Terraform Plan completed."
-            '''
-          }
+        stage('Terraform Init') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh 'terraform init -input=false -reconfigure'
+                }
+            }
         }
-      }
-    }
 
-    stage('Approve Terraform Apply') {
-      steps {
-        input message: 'Do you want to apply the Terraform plan?', ok: 'Apply'
-      }
-    }
-
-    stage('Terraform Apply') {
-      steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
-          sh '''
-            echo "[INFO] Running Terraform Apply..."
-            export AWS_REGION=${AWS_REGION}
-            terraform apply -auto-approve tfplan
-            echo "[INFO] Terraform Apply completed."
-          '''
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh 'terraform plan -input=false -out=tfplan'
+                }
+            }
         }
-      }
+
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'jenkins'
+                ]]) {
+                    sh 'terraform apply -input=false tfplan'
+                }
+            }
+        }
     }
 
-    stage('Show Public IP') {
-      steps {
-        sh 'terraform output instance_public_ip'
-      }
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Terraform applied successfully.'
+        }
+        failure {
+            echo 'Terraform pipeline failed.'
+        }
     }
-  }
-
-  post {
-    success {
-      echo '🟢 Pipeline completed successfully!'
-    }
-    failure {
-      echo '🔴 Pipeline failed — check logs for details.'
-    }
-  }
 }
