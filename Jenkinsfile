@@ -24,7 +24,10 @@ pipeline {
 
     stage('Terraform Init') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'jenkins'
+        ]]) {
           retry(2) {
             timeout(time: 15, unit: 'MINUTES') {
               sh '''
@@ -41,7 +44,10 @@ pipeline {
 
     stage('Terraform Plan') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'jenkins'
+        ]]) {
           timeout(time: 15, unit: 'MINUTES') {
             sh '''
               echo "[INFO] Running Terraform Plan..."
@@ -62,7 +68,10 @@ pipeline {
 
     stage('Terraform Apply') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'jenkins']]) {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'jenkins'
+        ]]) {
           sh '''
             echo "[INFO] Running Terraform Apply..."
             export AWS_REGION=${AWS_REGION}
@@ -77,7 +86,7 @@ pipeline {
       steps {
         sh '''
           echo "[INFO] Fetching EC2 public IP..."
-          terraform output instance_public_ip
+          terraform output -raw instance_public_ip || echo "Output not available."
         '''
       }
     }
