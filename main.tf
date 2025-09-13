@@ -1,16 +1,4 @@
 # --------------------------------------
-# Terraform Backend (in backend.tf file ideally)
-# --------------------------------------
-# This is managed outside Terraform (do NOT define the bucket as a resource)
-terraform {
-  backend "s3" {
-    bucket = "kapil-terraformstatefile-bucket-12345678"
-    key    = "terraform.tfstate"
-    region = "ap-south-1"
-  }
-}
-
-# --------------------------------------
 # Get Default VPC
 # --------------------------------------
 data "aws_vpc" "default" {
@@ -85,12 +73,4 @@ resource "aws_instance" "web" {
   tags = {
     Name = "TerraformWebServer"
   }
-}
-
-# --------------------------------------
-# Outputs
-# --------------------------------------
-output "instance_public_ip" {
-  description = "Public IP of the EC2 instance"
-  value       = aws_instance.web.public_ip
 }
