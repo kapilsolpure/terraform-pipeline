@@ -3,11 +3,11 @@
   #acl    = "private"
 
   #versioning {
-    enabled = true
+    #enabled = true
   }
 
   #tags = {
-    Name = "TerraformStateBucket"
+   # Name = "TerraformStateBucket"
   }
 }
 
